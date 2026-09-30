@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>家庭宠物养成学习系统 · 完整方案 V1.1</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { min-height: 100%; }
+body {
+  position: relative;
+  font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Segoe UI", "Noto Sans SC", sans-serif;
+  color: #134e4a;
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 40px 24px;
+  background: linear-gradient(160deg, #f5fcfa 0%, #ffffff 45%, #c3e8db 100%);
+  min-height: 100vh;
+}
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 45% 35% at 12% 8%, rgba(255,255,255,0.55) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 30% at 88% 90%, rgba(255,255,255,0.45) 0%, transparent 55%);
+}
+body > * { position: relative; z-index: 1; }
+.title {
+  position: relative;
+  overflow: hidden;
+  padding: 56px 40px;
+  text-align: center;
+  background: linear-gradient(135deg, #0f766e 0%, #14b8a6 50%, #2dd4bf 100%);
+  color: #ffffff;
+  border-radius: 16px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+}
+.title::before {
+  content: '';
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 70% 55% at 18% 82%, rgba(255,255,255,0.12) 0%, transparent 60%),
+    radial-gradient(ellipse 55% 40% at 82% 18%, rgba(255,255,255,0.08) 0%, transparent 55%);
+  pointer-events: none;
+}
+.title > * { position: relative; z-index: 1; }
+.title h1 { font-size: 28px; font-weight: 800; margin: 0 0 14px 0; letter-spacing: 1px; color: #ffffff; }
+.title .accent-line { width: 48px; height: 3px; background: rgba(255,255,255,0.85); margin: 0 auto 18px; border-radius: 2px; }
+.title p { font-size: 15px; color: rgba(255,255,255,0.9); margin: 0; line-height: 1.7; }
+h1.heading {
+  font-size: 28px;
+  color: #0e6b57;
+  margin: 36px 0 16px 0;
+  font-weight: 700;
+  border-left: 4px solid #14b8a6;
+  padding-left: 16px;
+}
+h2.heading {
+  font-size: 22px;
+  color: #0e6b57;
+  margin: 28px 0 12px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #bfe3d8;
+  font-weight: 600;
+}
+h3.heading { font-size: 18px; color: #0a5041; margin: 20px 0 10px; font-weight: 600; }
+.paragraph { font-size: 15px; color: #134e4a; line-height: 1.8; margin: 0 0 16px 0; text-indent: 2em; }
+.paragraph.no-indent { text-indent: 0; }
+.list { margin: 0 0 16px 0; padding-left: 24px; font-size: 15px; color: #134e4a; line-height: 1.8; }
+.list li { margin-bottom: 8px; }
+.list li::marker { color: #14b8a6; }
+.doc-section {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 24px 28px;
+  margin: 0 0 16px 0;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+}
+.doc-section.alt { background: #e2f4ee; box-shadow: none; }
+.callout {
+  margin: 0 0 16px 0;
+  padding: 16px 24px;
+  background: #e0f7f3;
+  border-left: 4px solid #14b8a6;
+  border-radius: 8px;
+}
+.callout[data-variant="warning"] { background: #FFF3E0; border-left-color: #d97706; }
+.callout[data-variant="quote"] { background: #f0fdfa; border-left-color: #14b8a6; }
+.callout p { font-size: 14px; color: #134e4a; margin: 0; line-height: 1.8; }
+.callout strong { color: #0a5041; }
+.table-wrap {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+  overflow: hidden;
+  margin: 0 0 16px 0;
+}
+.table-caption {
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #bfe3d8, #e0f7f3);
+  color: #0e6b57;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+  border-bottom: 1px solid #cdeee7;
+}
+table.table { width: 100%; border-collapse: collapse; font-size: 13.5px; table-layout: fixed; }
+table.table thead th {
+  padding: 10px 14px;
+  text-align: left;
+  background: #bfe3d8;
+  color: #0e6b57;
+  font-weight: 700;
+  border-bottom: 2px solid #cdeee7;
+  word-break: break-word;
+}
+table.table tbody td { padding: 10px 14px; border-bottom: 1px solid #cdeee7; color: #134e4a; word-break: break-word; line-height: 1.6; }
+table.table tbody tr:last-child td { border-bottom: none; }
+table.table tbody tr:nth-child(even) { background: #f5fcfa; }
+table.table td.ok { color: #0d9488; font-weight: 600; }
+table.table td.no { color: #d97706; }
+.stat-grid { display: flex; gap: 16px; margin: 0 0 16px 0; }
+.stat {
+  flex: 1;
+  text-align: center;
+  padding: 20px 16px;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  border-top: 3px solid #14b8a6;
+}
+.stat .num { font-size: 26px; color: #0d9488; font-weight: 800; line-height: 1.1; }
+.stat .label { font-size: 12px; color: #5b8a85; margin-top: 6px; }
+.timeline { list-style: none; padding: 0; margin: 0 0 16px 0; }
+.timeline li {
+  position: relative;
+  padding-left: 28px;
+  padding-bottom: 18px;
+  border-left: 2px solid #e0f7f3;
+  margin-left: 6px;
+}
+.timeline li:last-child { border-left-color: transparent; padding-bottom: 0; }
+.timeline li::before {
+  content: '';
+  position: absolute;
+  left: -7px; top: 5px;
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  background: #14b8a6;
+  border: 2px solid #f1faf7;
+  box-shadow: 0 0 0 2px #e0f7f3;
+}
+.timeline strong { font-size: 14px; color: #0d9488; }
+.timeline p { font-size: 14.5px; color: #134e4a; margin: 4px 0 0 0; line-height: 1.8; }
+.card-grid { display: flex; gap: 16px; margin: 0 0 16px 0; }
+.card {
+  flex: 1;
+  background: #ffffff;
+  padding: 22px;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  border-top: 3px solid #14b8a6;
+}
+.card h3 { font-size: 17px; color: #0e6b57; margin: 0 0 10px 0; font-weight: 700; }
+.card p { font-size: 13.5px; color: #5b8a85; margin: 0 0 8px 0; line-height: 1.7; }
+.card p.last { margin-bottom: 0; }
+.tag {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  margin-right: 6px;
+}
+.tag-blue { background: #E3F2FD; color: #1565C0; }
+.tag-green { background: #E8F5E9; color: #2E7D32; }
+.tag-orange { background: #FFF3E0; color: #E65100; }
+.tag-teal { background: #e0f7f3; color: #0d9488; }
+.divider { margin: 32px 0; text-align: center; user-select: none; }
+.divider .line { display: inline-block; width: 36px; height: 1px; vertical-align: middle; background: linear-gradient(to right, transparent, #e0f7f3); }
+.divider .line:last-child { background: linear-gradient(to left, transparent, #e0f7f3); }
+.divider .diamond { display: inline-block; width: 8px; height: 8px; margin: 0 12px; vertical-align: middle; transform: rotate(45deg); background: #14b8a6; border-radius: 1px; box-shadow: 0 0 0 2px #f1faf7; }
+.end_page {
+  margin-top: 24px;
+  padding: 56px 24px;
+  text-align: center;
+  background: linear-gradient(135deg, #bfe3d8 0%, #e0f7f3 100%);
+  border-radius: 16px;
+}
+.end_page h1 { font-size: 26px; color: #0e6b57; margin: 0 0 16px 0; font-weight: 800; }
+.end_page p { font-size: 15px; color: #5b8a85; margin: 0; line-height: 1.8; }
+@media screen and (max-width: 600px) {
+  body { padding: 16px !important; }
+  h1 { font-size: 22px !important; }
+  h2 { font-size: 18px !important; }
+  h3 { font-size: 16px !important; }
+  .stat-grid, .card-grid { flex-direction: column; }
+}
+@media print {
+  body { padding: 0 !important; margin: 0 !important; background: #f1faf7; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+  body::before { display: none; }
+  .title, .end_page { border-radius: 0; box-shadow: none; }
+  .doc-section, .card, .stat, .table-wrap { box-shadow: none; border: 1px solid #cdeee7; }
+  section { break-inside: auto !important; }
+}
+</style>
+</head>
+<body class="mode-doc" data-palette="teal">
+
+<section class="title">
+  <h1>「宠伴学园」家庭宠物养成学习系统</h1>
+  <div class="accent-line"></div>
+  <p>完整产品与技术方案 V1.1 · 面向小学四年级学生 · 云端部署 · 跨平台 · AI 驱动任务与批改</p>
+  <p style="margin-top:8px;font-size:13px;">2026 年 9 月 · 阿里云服务器 + DeepSeek API · 含 8 项决策点确认结果</p>
+</section>
+
+<h1 class="heading">一、需求理解与系统定位</h1>
+<div class="doc-section">
+  <p class="paragraph no-indent"><strong>一句话定位：</strong>部署在自家云服务器上的家庭学习系统，平板固定在墙边，孩子每天自主完成 AI 安排的学习任务，赚取食物和经验喂养自己的宠物，宠物陪伴孩子一起成长；家长在任何地方都能远程布置任务、查看学情。</p>
+  <p class="paragraph">你试过的三个项目（Banchong、gitanimals、class-pet-garden）都是「班级管理工具」或「开发者玩具」，核心逻辑是<strong>老师给孩子打分</strong>。而你要的是<strong>孩子自己驱动、AI 负责教学闭环</strong>的家庭系统，这是本质区别，没有现成项目能直接满足，需要定制开发。</p>
+  <div class="table-wrap">
+    <div class="table-caption">你的需求 → 系统核心能力对照</div>
+    <table class="table" data-caption="你的需求 → 系统核心能力对照">
+      <colgroup><col style="width:42%"><col style="width:58%"></colgroup>
+      <thead><tr><th>你提出的需求</th><th>系统对应设计</th></tr></thead>
+      <tbody>
+        <tr><td>孩子自主完成任务获取食物/经验，自己喂宠物</td><td>孩子端自主任务流 + 宠物喂食交互，全程无需家长在场</td></tr>
+        <tr><td>家长预设任务，AI 按学习进度每日安排</td><td>家长配置任务模板与难度，DeepSeek 每天晨间生成个性化任务单</td></tr>
+        <tr><td>英语听写，孩子填写后 AI 批改</td><td>词库 + 语音读词 + 拼写判定 + 错词自动进复习本</td></tr>
+        <tr><td>语文阅读（录音识别），AI 提问并评分</td><td>录音 → 语音转文字 → AI 针对内容提问 → 孩子作答 → AI 评分</td></tr>
+        <tr><td>数学同流程批改</td><td>口算程序判定（不花钱）+ 应用题 AI 生成与批改</td></tr>
+        <tr><td>小学四年级语数英科体</td><td>五学科任务模块，教材词库内置 + 家长自定义</td></tr>
+        <tr><td>进化、战斗、技能、皮肤、BOSS 战</td><td>宠物进化链 + 答题回合制战斗 + 学科周 BOSS + 装扮商城</td></tr>
+        <tr><td>金币来源多元化，主要靠任务</td><td>三货币体系：经验 / 金币 / 食物，获取与消费闭环设计</td></tr>
+        <tr><td>设备固定、只能用这个应用</td><td>iPad「引导式访问」锁定单应用 + 应用内时段与门禁控制</td></tr>
+        <tr><td>多宠物领养，各自从 0 级养起</td><td>宠物档案相互独立，界面展示全部宠物</td></tr>
+        <tr><td>1 级最多 3 只，5 级 +3，10 级 +3…</td><td>领养上限随孩子账号等级扩展（每 5 级 +3，可配置）</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="card-grid" data-cols="4">
+  <div class="stat"><div class="num">5</div><div class="label">学科任务模块</div></div>
+  <div class="stat"><div class="num">2</div><div class="label">端（孩子 / 家长）</div></div>
+  <div class="stat"><div class="num">4</div><div class="label">宠物品质（普通→神兽）</div></div>
+  <div class="stat"><div class="num">约100元</div><div class="label">预估每月总成本</div></div>
+</div>
+
+<h1 class="heading">二、四个关键决策（已按你的反馈修订）</h1>
+
+<h2 class="heading">决策 1：设备策略——Web 应用天然跨平台，换平板零迁移</h2>
+<div class="doc-section">
+  <p class="paragraph">系统做成<strong>跑在云服务器上的 Web 应用</strong>后，设备问题自动消解：<strong>任何有浏览器的设备打开网址登录即可使用</strong>——iPad、华为平板、小米平板、未来的新 iPad 都一样，数据在云端，换设备 = 换个浏览器输入网址，零迁移成本。这就是决策 2 带来的最大红利。</p>
+  <p class="paragraph">当前用 iPad 先跑起来，未来换平板时只需在新设备上完成两件事：打开网址登录 + 重新设置单应用锁定。各平台的锁定方式都已有成熟方案：</p>
+  <div class="table-wrap">
+    <div class="table-caption">各平台「只能用这个应用」的锁定方案</div>
+    <table class="table" data-caption="各平台单应用锁定方案">
+      <colgroup><col style="width:20%"><col style="width:42%"><col style="width:38%"></colgroup>
+      <thead><tr><th>平台</th><th>锁定机制</th><th>效果</th></tr></thead>
+      <tbody>
+        <tr><td><strong>iPad（当前）</strong></td><td>系统自带「引导式访问」：连按 3 次电源键锁定当前应用，退出需密码</td><td class="ok">最强：Home 键/通知/切换全部失效，完全符合你的要求</td></tr>
+        <tr><td><strong>安卓平板（未来可能）</strong></td><td>系统自带「屏幕固定」（设置→安全→屏幕固定），或厂商儿童模式（华为/小米均有）</td><td class="ok">接近：退出需 PIN，配合儿童模式可禁用其他应用</td></tr>
+        <tr><td><strong>华为手机（家长端）</strong></td><td>无需锁定，家长自己用</td><td>—</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <aside class="callout" data-variant="warning">
+    <p><strong>唯一需要跨平台适配的技术点：语音识别。</strong>iPad 的 Safari 有内置免费语音识别，但安卓平板（无谷歌服务）没有。方案：语音识别统一走<strong>服务端云端识别</strong>（录音上传 → 服务器调用语音识别接口 → 返回文字），所有平台体验一致，不再依赖任何单台设备的能力。代价是语音识别按量付费（见决策 2 成本表），每天约 2 分钟朗读，每月成本几元，可接受。</p>
+  </aside>
+  <aside class="callout" data-variant="tip">
+    <p><strong>建议：</strong>不必现在纠结未来买什么平板。Web 架构下这个决定可以无限期推迟——到时候什么顺眼买什么，登录网址就能用。语音识别、AI 调用都在服务器端完成，设备只是「一块带浏览器的屏幕」。</p>
+  </aside>
+</div>
+
+<h2 class="heading">决策 2：阿里云服务器部署——数据安全 + 家长远程访问（本次重大调整）</h2>
+<div class="doc-section">
+  <p class="paragraph">按你的要求改为云端部署。系统整体分三层：</p>
+  <div class="card-grid" data-cols="3">
+    <div class="card">
+      <h3>📱 终端层（家里/出差）</h3>
+      <p>iPad（孩子端，浏览器打开+引导式访问锁定）、华为手机（家长端，任意浏览器）。</p>
+      <p class="last">只负责展示和交互，不存数据——所以换设备、清缓存都不丢进度。</p>
+    </div>
+    <div class="card">
+      <h3>☁️ 服务器层（阿里云）</h3>
+      <p>轻量应用服务器：Web 应用 + 数据库 + 录音文件存储。通过 HTTPS 域名对外提供服务。</p>
+      <p class="last">每天自动备份数据库到 OSS 对象存储，保留 30 天，彻底解决数据丢失担忧。</p>
+    </div>
+    <div class="card">
+      <h3>🤖 AI 服务层（外部 API）</h3>
+      <p>DeepSeek（出题/批改/鼓励语）+ 云语音识别（朗读转文字）。API 密钥只存服务器，不进任何终端设备。</p>
+      <p class="last">密钥集中管理也更安全，换平板完全不用碰密钥。</p>
+    </div>
+  </div>
+  <h3 class="heading">这直接解决了你的三件事</h3>
+  <ol class="timeline">
+    <li><strong>数据不丢</strong><p>数据在服务器，终端坏了/换了/清缓存都无影响；每日自动备份 OSS，误删也能找回 30 天内任意版本。</p></li>
+    <li><strong>家长出差远程管理</strong><p>家长端就是普通网址，在外地酒店用华为手机连 4G 打开就能：布置/调整任务模板、确认体育任务、看学情周报、改系统设置、签发免任务卡——和在家完全一样。</p></li>
+    <li><strong>多设备并存</strong><p>iPad 和华为手机同时在线看到的是同一份实时数据（孩子在 iPad 完成任务，你手机上 3 秒内就能看到记录）。</p></li>
+  </ol>
+  <div class="table-wrap">
+    <div class="table-caption">云部署月度成本预估（轻量级家用规模）</div>
+    <table class="table" data-caption="云部署月度成本预估">
+      <colgroup><col style="width:30%"><col style="width:22%"><col style="width:48%"></colgroup>
+      <thead><tr><th>项目</th><th>预估费用</th><th>说明</th></tr></thead>
+      <tbody>
+        <tr><td>阿里云轻量服务器 2核2G</td><td>约 50~90 元/月</td><td>新用户首购优惠更低（约 30~50 元/月），年付再打折；单家庭负载极小，最低配绰绰有余</td></tr>
+        <tr><td>域名（.com/.cn）</td><td>约 4 元/月</td><td>年付约 50 元，家庭用可选便宜后缀</td></tr>
+        <tr><td>HTTPS 证书</td><td class="ok">0 元</td><td>Let's Encrypt 免费证书，自动续期</td></tr>
+        <tr><td>OSS 备份存储</td><td>约 1 元/月</td><td>数据库+录音按量计费，量很小</td></tr>
+        <tr><td>DeepSeek API</td><td>&lt;10 元/月</td><td>见决策 3 的调用估算</td></tr>
+        <tr><td>云语音识别</td><td>约 2~5 元/月</td><td>每天约 2 分钟朗读 + 语音答题，按量计费</td></tr>
+        <tr><td><strong>合计</strong></td><td><strong>约 60~110 元/月</strong></td><td>用新用户优惠 + 年付可压缩到 60~80 元/月</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <aside class="callout" data-variant="warning">
+    <p><strong>公网暴露的安全设计（云部署必须做好）：</strong>① 全站 HTTPS 加密；② 孩子端/家长端分账号，家长端强制密码 + 登录二次验证（验证码或独立 PIN）；③ 连续输错密码自动锁定防暴力破解；④ 服务器防火墙只开必要端口；⑤ API 密钥只存服务器环境变量。系统上线前我会逐项帮你配置好，并提供一份《服务器安全配置清单》。</p>
+  </aside>
+</div>
+
+<h2 class="heading">决策 3：判定引擎——默认「智能混合」，家长后台可逐科切换</h2>
+<div class="doc-section">
+  <p class="paragraph">按你的偏好，判定方式不写死：家长后台为每个环节提供三种模式——<strong>「程序判定」（零成本、秒回、绝对公平）/ 「AI 判定」（智能、能看思路、有讲解）/ 「智能混合」（推荐）</strong>。默认全系统用「智能混合」，逻辑如下：</p>
+  <ul class="list">
+    <li><strong>有标准答案的用程序</strong>：英语单词拼写、数学口算——对就是对错就是错，AI 介入既花钱又慢还可能误判，程序判定体验最好</li>
+    <li><strong>需要理解能力的用 AI</strong>：语文朗读评分、阅读理解问答、数学应用题过程批改、宠物鼓励语——这是 AI 真正的价值所在，效果好得多</li>
+    <li><strong>出题一律用 AI + 缓存</strong>：AI 按孩子进度出题（题库类如科学选择题批量生成存服务器，摊薄成本）</li>
+  </ul>
+  <div class="table-wrap">
+    <div class="table-caption">各环节默认判定方式与可切换选项</div>
+    <table class="table" data-caption="各环节默认判定方式与可切换选项">
+      <colgroup><col style="width:28%"><col style="width:18%"><col style="width:54%"></colgroup>
+      <thead><tr><th>环节</th><th>默认引擎</th><th>家长可切换为</th></tr></thead>
+      <tbody>
+        <tr><td>英语单词对错</td><td>程序</td><td>可切 AI（如想让孩子获得更宽容的判定和讲解）</td></tr>
+        <tr><td>英语读词发音</td><td>程序（语音合成）</td><td>—</td></tr>
+        <tr><td>语文朗读转文字</td><td>云语音识别</td><td>—（识别服务统一走云端，保证各平台一致）</td></tr>
+        <tr><td>语文阅读问答评分</td><td>AI</td><td>可切程序（仅关键词匹配，不推荐）</td></tr>
+        <tr><td>数学口算</td><td>程序</td><td>—（无理由用 AI）</td></tr>
+        <tr><td>数学应用题批改</td><td>AI</td><td>可切程序（仅对答案，不看过程）</td></tr>
+        <tr><td>科学选择题</td><td>AI 出题 + 程序判定</td><td>出题可关（用内置静态题库）</td></tr>
+        <tr><td>每日任务单生成</td><td>AI</td><td>可切固定模式（不按进度动态调整，零 AI 成本）</td></tr>
+        <tr><td>宠物鼓励语</td><td>AI（可缓存）</td><td>可切固定语料库</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <aside class="callout" data-variant="tip">
+    <p><strong>关于「效果最好且不容易出错」：</strong>混合模式正是为此设计——程序判定环节永远不会出错（字符串比对无歧义），AI 判定环节都是开放性问题（AI 恰好擅长）。另设「AI 判定失败自动降级」：DeepSeek 接口超时或异常时自动降级为程序判定/固定题库，任务不中断，只在家长端留一条「今日 AI 服务异常」记录。<strong>效果与稳定性双保险。</strong></p>
+  </aside>
+</div>
+
+<h2 class="heading">决策 4：部署形态——Docker 容器化，一键部署可搬家</h2>
+<div class="doc-section">
+  <p class="paragraph">服务器端采用 Docker 容器化部署（Web 应用、数据库、备份任务各自独立容器）。好处：</p>
+  <ul class="list">
+    <li><strong>部署简单</strong>：一条命令拉起整个系统，我远程指导你 30 分钟内完成首次部署</li>
+    <li><strong>随时搬家</strong>：哪天想换服务器厂商（阿里云→腾讯云→自家 NAS），导出容器数据即可整体迁移，不用重装任何东西</li>
+    <li><strong>升级安全</strong>：版本更新=替换容器，出问题秒回滚旧版本</li>
+  </ul>
+</div>
+
+<h1 class="heading">三、角色与账号体系</h1>
+<div class="doc-section">
+  <div class="card-grid" data-cols="2">
+    <div class="card">
+      <h3>👦 孩子端（iPad 主界面）</h3>
+      <p>做任务、喂宠物、战斗、逛商城、看宠物状态。全大按钮、语音提示、无任何危险操作入口。</p>
+      <p class="last">无密码直接进入——孩子的乐趣不应被登录挡住。</p>
+    </div>
+    <div class="card">
+      <h3>🔒 家长端（独立网址 + 账号密码，支持外网）</h3>
+      <p>布置任务模板、设难度、看学情报表、确认体育任务、管商城定价、调防沉迷规则。华为手机浏览器打开即可，<strong>出差外地也能远程操作，和在家完全一样</strong>。</p>
+      <p class="last"><strong>账号密码 + 二次验证保护是必须的</strong>——孩子端是独立的无害界面，后台才是管理入口，隔离后才不怕孩子改奖励数值。</p>
+    </div>
+  </div>
+  <h3 class="heading">两套等级，各管各的</h3>
+  <ul class="list">
+    <li><strong>孩子账号等级（总经验）</strong>：所有任务获得的经验累计，决定领养上限、玩法解锁。只涨不跌。</li>
+    <li><strong>宠物等级（各自独立）</strong>：每只宠物有自己的经验条，从 1 级养起，喂食和任务获得的经验只加给指定宠物。</li>
+  </ul>
+  <aside class="callout">
+    <p><strong>多孩支持（预置能力）</strong>：系统按「孩子档案」设计，切换档案各自独立（宠物、任务、进度）。单孩家庭就一个档案，未来有二孩直接加档案即可，无需改造。</p>
+  </aside>
+</div>
+
+<h1 class="heading">四、任务系统设计</h1>
+
+<h2 class="heading">4.1 四类任务</h2>
+<div class="doc-section">
+  <div class="table-wrap">
+    <div class="table-caption">任务类型矩阵</div>
+    <table class="table" data-caption="任务类型矩阵">
+      <colgroup><col style="width:18%"><col style="width:26%"><col style="width:30%"><col style="width:26%"></colgroup>
+      <thead><tr><th>类型</th><th>来源</th><th>示例</th><th>判定方式</th></tr></thead>
+      <tbody>
+        <tr><td><strong>AI 动态任务</strong></td><td>DeepSeek 按进度生成</td><td>听写 2 个英语单词、一道应用题</td><td>程序 + AI</td></tr>
+        <tr><td><strong>家长固定任务</strong></td><td>家长后台预设，每天重复</td><td>跳绳 200 个、练琴 20 分钟、收拾书桌</td><td>家长确认</td></tr>
+        <tr><td><strong>习惯打卡</strong></td><td>家长预设，孩子一键打卡</td><td>早起、睡前刷牙、自主阅读 15 分钟</td><td>诚信打卡（抽查）</td></tr>
+        <tr><td><strong>错题复习任务</strong></td><td>系统自动生成</td><td>复习 3 天前听写错的单词</td><td>程序判定</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<h2 class="heading">4.2 每日任务是怎么生成的</h2>
+<div class="doc-section">
+  <ol class="timeline">
+    <li><strong>家长预先设定任务模板（一次性工作）</strong><p>例如：英语听写每天 2 词（来源：本学期词库）、语文阅读每天 1 篇（时长 10 分钟）、数学每天 10 道口算 + 1 道应用题、跳绳每天 200 个。模板决定「每天要做哪些类型、做多少」。</p></li>
+    <li><strong>每天第一次打开应用，AI 生成当日任务单</strong><p>系统把孩子最近的学习数据（错词本、各科正确率、已完成进度）连同任务模板发给 DeepSeek，AI 返回具体任务内容：今天听写哪 2 个词（优先安排快遗忘的错词）、出什么应用题。生成后缓存本地，当天不再重复调用。</p></li>
+    <li><strong>孩子逐个完成任务，即时反馈</strong><p>每完成一项立刻看到：对错、得分、获得的经验/金币/食物，配合动画和宠物欢呼。答错的知识点自动进入错题本，若干天后由复习任务再次出现。</p></li>
+    <li><strong>全部完成 → 解锁当日娱乐模块</strong><p>战斗、装扮、商城在任务完成度达标后才开放（比例家长可调，默认 80%），防止「只玩不学」。</p></li>
+  </ol>
+  <aside class="callout" data-variant="warning">
+    <p><strong>防蒙题机制（AI 批改环节必需）</strong>：同一任务答错可重试，但每天最多 2 次，重试通过只发一半奖励；连续乱答系统判定「摆烂」时，本任务奖励减半并提示家长端。防止孩子瞎试刷奖励。</p>
+  </aside>
+</div>
+
+<h2 class="heading">4.3 任务状态流转</h2>
+<div class="doc-section alt">
+  <p class="paragraph no-indent" style="font-family:monospace;font-size:14px;text-align:center;letter-spacing:1px;">待完成 → 进行中 → 已提交 → 批改中（AI）→ 通过 ✓ 发奖 ｜ 部分通过 → 半奖+错题本 ｜ 未通过 → 重试（≤2次）→ 家长可见</p>
+  <ul class="list" style="margin-top:12px;">
+    <li><strong>体育/家务类</strong>无「批改中」状态，流转为：孩子提交「我做完了」→ 家长手机端收到确认卡片 → 家长确认后发奖（可驳回）</li>
+    <li><strong>免任务卡</strong>：家长可签发「今日免做」（生病、生日、考试日），不影响连续打卡记录，宠物不会因此挨饿（系统自动代喂）</li>
+  </ul>
+</div>
+
+<h1 class="heading">五、五学科模块详细设计</h1>
+
+<h2 class="heading">5.1 英语：听写闭环</h2>
+<div class="doc-section">
+  <ol class="timeline">
+    <li><strong>系统读词</strong><p>浏览器语音合成朗读英文单词（各平台均支持，可设置读 1 遍或 2 遍），同时可显示中文释义作为提示（可关闭，用于考核）。</p></li>
+    <li><strong>孩子拼写</strong><p>大号键盘输入，每个单词提交后立即判定，对了宠物欢呼，错了显示正确拼写并进入错词本。</p></li>
+    <li><strong>错词复习（艾宾浩斯）</strong><p>错词按 1 天 / 3 天 / 7 天 / 15 天周期自动混入后续听写，连续答对 3 次才算掌握出队。</p></li>
+    <li><strong>词库来源</strong><p>内置人教 PEP 四年级上下册词库，家长可自行增删单词（如老师每周报的听写范围），也可整册切换其他教材版本。</p></li>
+  </ol>
+</div>
+
+<h2 class="heading">5.2 语文：朗读 + 理解问答</h2>
+<div class="doc-section">
+  <ol class="timeline">
+    <li><strong>阅读材料</strong><p>两种模式：① 内置短文库（按四年级水平分级：寓言、科普短文、课文选段，家长可挑）；② 家长上传（粘贴任意文本，比如课外书某章节拍照转文字）。</p></li>
+    <li><strong>录音朗读</strong><p>孩子点击录音按钮开始朗读，读完点击结束。录音上传服务器，由云语音识别服务转成文字（全平台统一，不依赖设备能力）。</p></li>
+    <li><strong>AI 出理解题</strong><p>DeepSeek 根据转写文本出 2~3 个问题（主旨、细节、感受类），逐题提问。</p></li>
+    <li><strong>孩子作答</strong><p>可以打字，也可以按住说话用语音输入（录音同样走云端识别）。</p></li>
+    <li><strong>AI 评分</strong><p>综合评分 = 朗读流畅度（转写完整度/语速）+ 理解度（答题质量），按 A/B/C 档发放不同奖励。</p></li>
+  </ol>
+  <aside class="callout">
+    <p><strong>设计细节：</strong>转写文字和评分详情都会保存，家长端能回放孩子当天的朗读录音——这是很珍贵的学习成长记录。</p>
+  </aside>
+</div>
+
+<h2 class="heading">5.3 数学：口算 + 应用题双轨</h2>
+<div class="doc-section">
+  <div class="card-grid" data-cols="2">
+    <div class="card">
+      <h3>口算（程序生成判定）</h3>
+      <p>覆盖四年级知识点：两三位数乘除、四则混合运算、运算律简便计算、小数加减。每天 10 题，计时挑战模式，程序即时判对错，零 AI 成本。</p>
+      <p class="last">错题同样进错题本，隔天变形重出（数字换、结构同）。</p>
+    </div>
+    <div class="card">
+      <h3>应用题（AI 出题批改）</h3>
+      <p>每天 1 道，AI 按四年级知识点（行程、植树、面积、平均数等）出题，孩子可写分步过程。</p>
+      <p class="last">AI 批改不仅看答案，还看思路：答案对过程错给 B 档，过程对算错数给 B+，全对 A。批改理由用孩子能懂的话讲出来。</p>
+    </div>
+  </div>
+</div>
+
+<h2 class="heading">5.4 科学：题库缓存模式</h2>
+<div class="doc-section">
+  <p class="paragraph">四年级科学（物质、生命、地球与宇宙、技术工程四大领域）：AI 每周批量生成一批选择题/判断题存到服务器，孩子每天做 3 道，程序判定。每周仅需 1 次 AI 批量调用，成本几乎为零。答错的知识点自动生成「小知识卡」讲给孩子听。</p>
+</div>
+
+<h2 class="heading">5.5 体育与生活：家长验收制</h2>
+<div class="doc-section">
+  <p class="paragraph">跳绳、仰卧起坐、练琴、家务等无法自动判定的任务，设计为<strong>孩子提交 → 家长手机确认</strong>：孩子完成后点击「我做完啦」，家长端弹出确认卡片，家长点「确认」发奖或「驳回」。家长端还支持给任务拍照留档（如练琴视频）。这是唯一需要家长每天花 10 秒参与的环节。</p>
+</div>
+
+<div class="table-wrap">
+  <div class="table-caption">五学科 AI 调用与成本汇总</div>
+  <table class="table" data-caption="五学科 AI 调用与成本汇总">
+    <colgroup><col style="width:14%"><col style="width:30%"><col style="width:20%"><col style="width:18%"><col style="width:18%"></colgroup>
+    <thead><tr><th>学科</th><th>每日任务内容</th><th>判定方式</th><th>AI 调用/天</th><th>重试</th></tr></thead>
+    <tbody>
+      <tr><td>英语</td><td>听写 2 词 + 错词复习</td><td>程序判定</td><td class="ok">0 次</td><td>当场重试 1 次</td></tr>
+      <tr><td>语文</td><td>朗读 1 篇 + 答题</td><td>AI 出题 + 评分</td><td>1~2 次</td><td>答错不扣奖，鼓励重读</td></tr>
+      <tr><td>数学</td><td>口算 10 + 应用题 1</td><td>程序 / AI 批改</td><td>1 次</td><td>口算当场重做</td></tr>
+      <tr><td>科学</td><td>选择/判断 3 题</td><td>程序判定</td><td class="ok">≈0.1 次（周批量）</td><td>看讲解后重答</td></tr>
+      <tr><td>体育/生活</td><td>家长自定义</td><td>家长确认</td><td class="ok">0 次</td><td>家长驳回可补做</td></tr>
+      <tr><td>每日任务单生成</td><td>调度以上内容</td><td>AI 生成</td><td>1 次</td><td>—</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h1 class="heading">六、奖励与经济系统</h1>
+<div class="doc-section">
+  <h3 class="heading">三种货币，职责分离</h3>
+  <div class="card-grid" data-cols="3">
+    <div class="card">
+      <h3>⭐ 经验值</h3>
+      <p>只通过完成任务获得，不可消费、不可交易。</p>
+      <p>用途：孩子账号升级（解锁领养位、玩法）+ 宠物升级。</p>
+      <p class="last">原则：经验只能靠学习挣，花多少钱都买不到。</p>
+    </div>
+    <div class="card">
+      <h3>🪙 金币</h3>
+      <p>主要来自任务，另有连续打卡奖励、BOSS 战胜利、家长签发。</p>
+      <p>用途：商城消费（食物、皮肤、家具）。</p>
+      <p class="last">可消费设计让孩子学会「攒钱—抉择—消费」。</p>
+    </div>
+    <div class="card">
+      <h3>🍖 食物</h3>
+      <p>任务直接掉落（约 30% 概率）+ 金币购买。</p>
+      <p>用途：喂宠物（恢复饱食度、加宠物经验）。</p>
+      <p class="last">不同食物效果不同：普通粮/高级粮/节日大餐。</p>
+    </div>
+  </div>
+  <div class="table-wrap">
+    <div class="table-caption">奖励数值锚点（默认值，家长端全部可调）</div>
+    <table class="table" data-caption="奖励数值锚点">
+      <colgroup><col style="width:30%"><col style="width:20%"><col style="width:25%"><col style="width:25%"></colgroup>
+      <thead><tr><th>行为</th><th>经验</th><th>金币</th><th>食物掉落</th></tr></thead>
+      <tbody>
+        <tr><td>英语听写全对（2 词）</td><td>+10</td><td>+5</td><td>30%</td></tr>
+        <tr><td>语文阅读 A 档</td><td>+20</td><td>+10</td><td>50%</td></tr>
+        <tr><td>语文阅读 B 档</td><td>+12</td><td>+6</td><td>30%</td></tr>
+        <tr><td>数学口算 10 题全对</td><td>+15</td><td>+8</td><td>30%</td></tr>
+        <tr><td>数学应用题通过</td><td>+15</td><td>+8</td><td>30%</td></tr>
+        <tr><td>科学 3 题全对</td><td>+10</td><td>+5</td><td>20%</td></tr>
+        <tr><td>体育任务家长确认</td><td>+15</td><td>+8</td><td>50%</td></tr>
+        <tr><td>连续 7 天全勤</td><td>+50</td><td>+30</td><td>节日大餐 1 份</td></tr>
+        <tr><td>BOSS 战胜利（周末）</td><td>+30</td><td>+20~50</td><td>稀有食物</td></tr>
+        <tr><td>每日任务全部完成</td><td>+30</td><td>+15</td><td>—</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <aside class="callout" data-variant="warning">
+    <p><strong>防通胀三条规则（已内置）：</strong>① 每日经验/金币获取有硬上限（默认经验 150 / 金币 100），超出发「感谢参与」不计酬；② 连续答错后通过的重试只发 50% 奖励；③ 商城稀有商品限量、随机上架，制造稀缺感而非无限供给。</p>
+  </aside>
+  <aside class="callout" data-variant="tip">
+    <p><strong>心理激励设计（比数值更重要）：</strong>连续打卡火焰图标（断签可用「补签卡」救回，每月 1 张）；宠物每天用 AI 生成的不同的话夸孩子（「今天听写全对，你的兔子说你是最棒的小主人！」）；避免纯物质化——喂宠物时宠物的开心反应本身就是奖励。</p>
+  </aside>
+</div>
+
+<h1 class="heading">七、宠物系统</h1>
+
+<h2 class="heading">7.1 领养、上限与品质解锁规则</h2>
+<div class="doc-section">
+  <h3 class="heading">领养上限（已确认按孩子账号等级）</h3>
+  <ul class="list">
+    <li><strong>初始上限 3 只</strong>；孩子账号每升 5 级上限 +3（5 级 6 只、10 级 9 只、15 级 12 只……），上限封顶 30 只，规则家长端可改</li>
+    <li><strong>每只宠物独立成长</strong>：新领养的宠物从 1 级、0 经验开始，与已养宠物无关；界面一屏展示全部宠物（头像墙），点击进入单只详情</li>
+    <li><strong>领养仪式感</strong>：宠物从「蛋」开始孵化——领养后显示一颗蛋，喂食 3 次后破壳（呼应你想要的蛋壳成长），破壳时随机孵化出该种类的幼年形态</li>
+    <li><strong>放归机制</strong>：上限满时可选「送宠物去旅行」腾出位置（保留档案可召回，不删除数据，避免孩子情感伤害）</li>
+  </ul>
+  <h3 class="heading">四档品质与解锁条件（本次新增）</h3>
+  <div class="table-wrap">
+    <div class="table-caption">宠物品质等级体系</div>
+    <table class="table" data-caption="宠物品质等级体系">
+      <colgroup><col style="width:14%"><col style="width:16%"><col style="width:22%"><col style="width:48%"></colgroup>
+      <thead><tr><th>品质</th><th>界面标识</th><th>解锁条件</th><th>说明</th></tr></thead>
+      <tbody>
+        <tr><td><strong>普通</strong></td><td>灰色徽章</td><td class="ok">初始即可领养</td><td>4 条进化链：猫咪、小狗、兔子、仓鼠——新手友好，成长快</td></tr>
+        <tr><td><strong>稀有</strong></td><td>蓝色徽章</td><td>孩子账号 5 级</td><td>2 条进化链：小狐狸、小企鹅——属性略强，进化动画更华丽</td></tr>
+        <tr><td><strong>珍贵</strong></td><td>紫色徽章</td><td>孩子账号 10 级</td><td>2 条进化链：小水豚、雪白龙猫——外观更精致，带专属互动动作</td></tr>
+        <tr><td><strong>神兽</strong></td><td>金色徽章+光环</td><td>各神兽独立条件（见 7.3）</td><td>6 只，每只领取条件不同，全部对应长期学习成就</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <aside class="callout" data-variant="tip">
+    <p><strong>品质设计原则（平衡性考量）：</strong>品质差异主要在<strong>外观、互动动作、进化动画、专属技能特效</strong>，数值差距刻意压小（同等级神兽只比普通强 15% 左右）——避免「氪金式战力碾压」，孩子的努力程度（等级、喂养、技能升级）永远比宠物出身更重要。这也是让孩子保持动力的关键：普通品质练到高等级依然能打赢低级神兽。</p>
+  </aside>
+  <aside class="callout">
+    <p><strong>已确认口径：</strong>领养上限按<strong>孩子账号等级</strong>设计（而不是单只宠物的等级）——账号每升 5 级解锁 3 个新位置，是多学科持续努力的长期回报，与「每只宠物独立从零养起」不冲突。（2026-09-28 已确认）</p>
+  </aside>
+</div>
+
+<h2 class="heading">7.2 宠物状态与喂养</h2>
+<div class="doc-section">
+  <div class="table-wrap">
+    <div class="table-caption">宠物状态栏设计</div>
+    <table class="table" data-caption="宠物状态栏设计">
+      <colgroup><col style="width:18%"><col style="width:44%"><col style="width:38%"></colgroup>
+      <thead><tr><th>状态</th><th>规则</th><th>设计意图</th></tr></thead>
+      <tbody>
+        <tr><td>等级/经验</td><td>喂食和任务经验累积升级，各级所需经验递增</td><td>成长可见性</td></tr>
+        <tr><td>饱食度</td><td>每天自然下降 20 点（0~100），喂食恢复；低于 30 宠物显示饥饿表情并「闹脾气」</td><td>让孩子每天惦记完成任务挣食物</td></tr>
+        <tr><td>心情</td><td>喂食、抚摸、战斗胜利提升；长期饥饿下降</td><td>情感联结</td></tr>
+        <tr><td>健康</td><td>连续 3 天饱食度为 0 时「生病」（蔫蔫的、头顶温度计），完成任务才能喂药恢复</td><td>温和的后果机制</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <aside class="callout" data-variant="warning">
+    <p><strong>刻意不设计「死亡」</strong>：参考了 Banchong 的宠物死亡+复活任务机制后，我认为对小学生太残酷（孩子可能因此抗拒整个系统）。用「生病」替代：有后果、有心疼感，但可恢复、不失去。</p>
+  </aside>
+</div>
+
+<h2 class="heading">7.3 进化链与神兽图鉴</h2>
+<div class="doc-section">
+  <p class="paragraph">每条进化链 4 个形态：<strong>蛋 → 幼年体 → 成长体 → 完全体</strong>（10 级 / 20 级 / 30 级时进化，进化播放动画+全屏庆祝）。进化不只看等级，还需喂过一定次数——保证「喂养」和「学习」两条线都要走。首期上线 <strong>8 条进化链</strong>（普通 4 + 稀有 2 + 珍贵 2），后续按季节活动扩充（节日限定进化链，如冬至雪狐、中秋玉兔）。</p>
+  <div class="table-wrap">
+    <div class="table-caption">首期 8 条进化链一览</div>
+    <table class="table" data-caption="首期 8 条进化链一览">
+      <colgroup><col style="width:12%"><col style="width:14%"><col style="width:16%"><col style="width:58%"></colgroup>
+      <thead><tr><th>品质</th><th>种族</th><th>完全体形态</th><th>特色</th></tr></thead>
+      <tbody>
+        <tr><td rowspan="4">普通</td><td>猫咪</td><td>月光猫</td><td>技能：爪击；性格粘人，抚摸加心情多</td></tr>
+        <tr><td>小狗</td><td>忠义犬</td><td>技能：冲撞；忠诚属性，喂养收益稳定</td></tr>
+        <tr><td>兔子</td><td>月宫兔</td><td>技能：跳跃；初期成长最快</td></tr>
+        <tr><td>仓鼠</td><td>颊囊王</td><td>技能：囤粮；自带储物袋彩蛋</td></tr>
+        <tr><td rowspan="2">稀有</td><td>小狐狸</td><td>九尾狐</td><td>技能：火焰；专属进化动画（三尾→九尾）</td></tr>
+        <tr><td>小企鹅</td><td>冰帝企鹅</td><td>技能：冰霜；专属冰面互动动作</td></tr>
+        <tr><td rowspan="2">珍贵</td><td>小水豚</td><td>温泉豚豚</td><td>技能：治愈；专属泡澡互动场景</td></tr>
+        <tr><td>雪白龙猫</td><td>云端龙猫</td><td>技能：浮云；专属飞行特效</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 class="heading">六神兽：每只都是一座学习里程碑（领取条件建议稿）</h3>
+  <p class="paragraph">神兽领取条件的设计原则：<strong>每一只神兽都对应一种长期学习成就，孩子看得到差距、够得着目标</strong>。条件进度对孩子可见（宠物图鉴里显示「已完成 62%」），完成后触发全屏庆祝+专属领养动画。以下是建议稿，具体数值家长端全部可调：</p>
+  <div class="table-wrap">
+    <div class="table-caption">六神兽领取条件（建议稿，待你确认）</div>
+    <table class="table" data-caption="六神兽领取条件建议稿">
+      <colgroup><col style="width:14%"><col style="width:38%"><col style="width:48%"></colgroup>
+      <thead><tr><th>神兽</th><th>领取条件（默认值）</th><th>寓意与设计意图</th></tr></thead>
+      <tbody>
+        <tr><td><strong>青龙</strong></td><td>孩子账号等级达到 20 级</td><td>长线坚持的终极回报——大约需要一个学期的稳定积累</td></tr>
+        <tr><td><strong>白虎</strong></td><td>数学累计答对 1000 题</td><td>数学之神的认可；按每天 11 题算约三个月，错题也算学习量</td></tr>
+        <tr><td><strong>朱雀</strong></td><td>语文朗读累计 100 篇</td><td>语文之魂的见证；鼓励阅读习惯，而非单次表现</td></tr>
+        <tr><td><strong>玄武</strong></td><td>连续打卡 100 天无断签</td><td>毅力之兽；可用补签卡救回，考验的是习惯而非天赋</td></tr>
+        <tr><td><strong>麒麟</strong></td><td>击败全部五学科周 BOSS 各 1 次</td><td>全能战士；单科强不够，需要五科均衡发展</td></tr>
+        <tr><td><strong>貔貅</strong></td><td>累计赚取 10000 金币（消费不计入）</td><td>财富管理大师；教孩子「挣钱要靠日积月累」，与商城经济形成闭环</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <aside class="callout" data-variant="tip">
+    <p><strong>为什么这样设计：</strong>六个条件分别对应「总量积累（青龙）／单科深耕（白虎朱雀）／习惯养成（玄武）／全面发展（麒麟）／财商启蒙（貔貅）」，覆盖六种不同的优秀，孩子总能找到适合自己的一条路。且每只神兽独立达标——就算数学不好，靠阅读和坚持也能拥有朱雀和玄武，避免单一评价挫伤信心。</p>
+  </aside>
+  <aside class="callout" data-variant="warning">
+    <p><strong>待你确认：</strong>① 六只神兽的名单（青龙/白虎/朱雀/玄武/麒麟/貔貅）是否换成孩子喜欢的其他神兽？② 各项默认数值是否需要调低（孩子的耐心有限，数值可以按「约 2~3 个月达成一只」的节奏校准）？③ 珍贵品质解锁是否需要改成「特定成就」（如英语错词清零）而不是单纯 10 级？</p>
+  </aside>
+  <p class="paragraph"><strong>美术素材方案：</strong>优先用程序绘制的简洁风格宠物（CSS/SVG 矢量，文件小、风格统一、无版权问题）；gitanimals 的 116 个精美动画素材可作为补充参考（其许可证未明确授权商用，家庭自用没问题，对外发布则不可）。</p>
+</div>
+
+<h1 class="heading">八、战斗与 BOSS：知识就是攻击力</h1>
+<div class="doc-section">
+  <p class="paragraph">战斗系统的核心原则：<strong>打怪靠答题，答对才有伤害</strong>——把游戏动力完全嫁接在学习上，而不是变成纯粹的娱乐分心。</p>
+  <div class="table-wrap">
+    <div class="table-caption">回合制答题战斗规则</div>
+    <table class="table" data-caption="回合制答题战斗规则">
+      <colgroup><col style="width:22%"><col style="width:78%"></colgroup>
+      <thead><tr><th>要素</th><th>规则</th></tr></thead>
+      <tbody>
+        <tr><td>普通攻击</td><td>每回合出一道题（难度匹配孩子水平），答对 = 攻击 + 宠物出击动画；答错 = 受到怪物反击（掉血但不会战斗失败惩罚过重）</td></tr>
+        <tr><td>技能攻击</td><td>宠物进化解锁技能（冲撞/火焰/治愈等）；释放技能 = 回答一道更难的题，答对双倍伤害，答错技能进入冷却</td></tr>
+        <tr><td>学科 BOSS</td><td>周末开放的「周常副本」：数学大魔王、语文书妖、英语蝙蝠王——用对应学科题目攻击才有效，打败掉落稀有奖励</td></tr>
+        <tr><td>难度自适应</td><td>题目难度按该学科近期正确率浮动：正确率高 → 上难度多奖励；连续失败 → 降难度保护信心</td></tr>
+        <tr><td>失败保护</td><td>战斗失败无惩罚（宠物说「我们再练练！」），但当天 BOSS 挑战次数用完（默认 3 次）</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<h1 class="heading">九、商城与个性化</h1>
+<div class="doc-section">
+  <ul class="list">
+    <li><strong>纯装饰原则</strong>：皮肤、家具、房间背景只改外观，不影响任何数值——避免「氪金变强」，学习才是唯一变强途径</li>
+    <li><strong>家长定价权</strong>：商城所有商品价格由家长端设定，家长也可以上架「现实奖励」（如「和爸爸下一盘棋」「周末公园野餐」需要 500 金币兑换）——把虚拟经济和真实家庭生活连起来</li>
+    <li><strong>上架节奏</strong>：每周限定商品轮换，制造期待感</li>
+  </ul>
+</div>
+
+<h1 class="heading">十、防沉迷与设备锁定（关键需求）</h1>
+<div class="doc-section">
+  <h3 class="heading">10.1 终端锁定配置（当前 iPad，一次性设置）</h3>
+  <ol class="timeline">
+    <li><strong>开启功能</strong><p>iPad「设置 → 辅助功能 → 引导式访问」打开开关，设置一个孩子不知道的 4 位密码（和锁屏密码不同）。</p></li>
+    <li><strong>锁定应用</strong><p>打开学习系统的网页 → 快速连按 3 次电源键 → 点「开始」。此后 iPad 被锁死在这个应用里，Home 键、通知栏、切换应用全部失效。</p></li>
+    <li><strong>退出方式</strong><p>只有家长连按 3 次电源键并输入密码才能退出——这就是你要的「其他功能都用不了」。</p></li>
+    <li><strong>未来换平板时</strong><p>安卓平板用「屏幕固定」或厂商儿童模式达到同样效果（详见决策 1 对照表），应用本身无需任何改动。</p></li>
+  </ol>
+  <h3 class="heading">10.2 应用内的四层防沉迷</h3>
+  <ul class="list">
+    <li><strong>门禁</strong>：当日任务完成度 &lt; 80%（可调）时，战斗/商城/装扮模块显示锁图标和「先完成任务哦」</li>
+    <li><strong>时段</strong>：家长设定可用时段（如放学后 17:00~20:00），时段外只有「宠物睡觉了，明天见」页面</li>
+    <li><strong>时长</strong>：单次连续使用超 30 分钟强制休息 10 分钟（护眼休息页面带倒计时，宠物陪孩子做眼保健操动画）</li>
+    <li><strong>总量</strong>：每日娱乐模块（战斗+商城）合计时长上限，学习任务不受限</li>
+  </ul>
+</div>
+
+<h1 class="heading">十一、家长后台配置清单（完整版）</h1>
+<div class="doc-section">
+  <p class="paragraph no-indent">以下是你没想到但必须由家长配置的项目，全部带合理默认值，不设置也能直接用：</p>
+  <div class="table-wrap">
+    <div class="table-caption">家长后台 · 全量配置项</div>
+    <table class="table" data-caption="家长后台全量配置项">
+      <colgroup><col style="width:16%"><col style="width:34%"><col style="width:22%"><col style="width:28%"></colgroup>
+      <thead><tr><th>分类</th><th>配置项</th><th>默认值</th><th>说明</th></tr></thead>
+      <tbody>
+        <tr><td rowspan="3">基础</td><td>孩子档案（姓名/头像/年级）</td><td>1 个档案</td><td>多孩可加档案</td></tr>
+        <tr><td>家长账号与二次验证</td><td>必填</td><td>后台唯一钥匙，支持远程登录</td></tr>
+        <tr><td>教材/词库版本</td><td>人教 PEP 四上（已确认）</td><td>可切四下/自编词库</td></tr>
+        <tr><td rowspan="7">任务</td><td>各科每日任务量</td><td>英 2 词/语 1 篇/数 10+1/科 3 题</td><td>每项可单独开关和调量</td></tr>
+        <tr><td>各科难度系数</td><td>自动</td><td>可手动固定难度</td></tr>
+        <tr><td>家长自定义固定任务</td><td>跳绳（已确认预置）</td><td>默认跳绳 200 个/天，可增删</td></tr>
+        <tr><td>每日任务时段窗口</td><td>17:00~20:30</td><td>窗外不可做任务</td></tr>
+        <tr><td>重试次数/半奖规则</td><td>2 次/半奖</td><td>防蒙题</td></tr>
+        <tr><td>免任务卡签发</td><td>不限量</td><td>生病/生日/考试日</td></tr>
+        <tr><td>语文阅读材料上传</td><td>家长上传为主（已确认）</td><td>支持粘贴文本/拍照转文字</td></tr>
+        <tr><td rowspan="5">奖励</td><td>经验/金币数值表</td><td>见第六章锚点表</td><td>每行可调</td></tr>
+        <tr><td>每日获取上限</td><td>经验 150 / 金币 100</td><td>防刷</td></tr>
+        <tr><td>连续打卡奖励曲线</td><td>7 天 +50/+30</td><td>可调周期和数额</td></tr>
+        <tr><td>食物掉落概率</td><td>20%~50%</td><td>各任务独立设</td></tr>
+        <tr><td>现实奖励商品上架</td><td>空</td><td>野餐/看电影等</td></tr>
+        <tr><td rowspan="6">宠物</td><td>领养上限曲线</td><td>3 只起步，每 5 级 +3，封顶 30</td><td>按账号等级（已确认）</td></tr>
+        <tr><td>饱食度衰减速度</td><td>-20/天</td><td>怕孩子焦虑可调慢</td></tr>
+        <tr><td>生病规则</td><td>连续 3 天饥饿</td><td>已确认接受，可关闭</td></tr>
+        <tr><td>进化等级门槛</td><td>10/20/30 级</td><td>可调</td></tr>
+        <tr><td>稀有/珍贵解锁等级</td><td>5 级 / 10 级</td><td>可调</td></tr>
+        <tr><td>六神兽领取条件</td><td>见 7.3 建议稿</td><td>每只独立可调</td></tr>
+        <tr><td rowspan="5">防沉迷</td><td>娱乐解锁门槛</td><td>任务完成度 80%</td><td>可调 50%~100%</td></tr>
+        <tr><td>可用时段</td><td>17:00~20:00</td><td>娱乐模块时段</td></tr>
+        <tr><td>单次时长/休息</td><td>30 分钟 + 休 10</td><td>护眼</td></tr>
+        <tr><td>每日娱乐总时长</td><td>40 分钟</td><td>学习不限</td></tr>
+        <tr><td>远程锁定</td><td>支持</td><td>家长手机可远程暂停孩子端</td></tr>
+        <tr><td rowspan="5">AI 与成本</td><td>各科判定引擎选择</td><td>智能混合（推荐）</td><td>每科可独立切：程序/AI/混合</td></tr>
+        <tr><td>DeepSeek API 密钥</td><td>必填</td><td>存服务器环境变量</td></tr>
+        <tr><td>云语音识别密钥</td><td>必填</td><td>阿里云/讯飞，跨平台统一</td></tr>
+        <tr><td>月度调用预算告警</td><td>30 元</td><td>超额提醒家长</td></tr>
+        <tr><td>宠物说话风格</td><td>温暖鼓励型</td><td>可调严格型</td></tr>
+        <tr><td rowspan="3">云端与数据</td><td>每日自动备份</td><td>凌晨 3 点 → OSS</td><td>保留 30 天，一键恢复</td></tr>
+        <tr><td>学情周报</td><td>每周日晚推送</td><td>各科正确率/用时/趋势</td></tr>
+        <tr><td>数据导出/清空</td><td>手动</td><td>清空需二次验证</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<h1 class="heading">十二、数据安全、隐私与成本</h1>
+<div class="doc-section">
+  <div class="card-grid" data-cols="2">
+    <div class="card">
+      <h3>💾 数据与备份（云端版）</h3>
+      <p>所有数据存阿里云服务器数据库（任务记录、宠物档案、错题本、录音）。</p>
+      <p>每日凌晨自动备份到 OSS 对象存储，保留 30 天，误删可一键恢复任意版本。</p>
+      <p>换平板/清缓存/设备丢失都不影响数据——新设备登录即恢复全部进度。</p>
+    </div>
+    <div class="card">
+      <h3>🔒 隐私边界（需知悉）</h3>
+      <p>语音朗读录音和答题内容会发送给两类外部服务：云语音识别（转文字用）和 DeepSeek API（出题/评分用）。</p>
+      <p>除这两项外无任何外发；系统无社交、无广告、无第三方追踪。所有传输全程 HTTPS 加密。</p>
+      <p class="last">录音文件存自家服务器，家长可随时下载或删除，不做长期保留。</p>
+    </div>
+  </div>
+  <div class="card-grid" data-cols="2">
+    <div class="card">
+      <h3>🛡️ 公网安全措施</h3>
+      <p>全站 HTTPS；家长端密码 + 二次验证；连续错输锁定防暴力破解；服务器防火墙最小化端口。</p>
+      <p class="last">上线时提供《安全配置清单》，逐项检查后才对外开放。</p>
+    </div>
+    <div class="card">
+      <h3>📞 可用性说明</h3>
+      <p>断网/服务器重启期间，孩子端显示「宠物在休息」页，网络恢复自动重连。</p>
+      <p class="last">轻量服务器年可用性 99.5%+，对家用完全够；也可选多地域备份容灾（成本略增，家用不必要）。</p>
+    </div>
+  </div>
+  <aside class="callout" data-variant="tip">
+    <p><strong>总成本预估（每月）：</strong>服务器 50~90 元 + 域名约 4 元 + OSS 备份约 1 元 + DeepSeek AI &lt;10 元 + 云语音识别 2~5 元 ≈ <strong>60~110 元/月</strong>（新用户优惠+年付可压到 60~80 元）。相比市面教育类 App 年费（动辄数百上千），且数据完全自主可控，性价比可观。</p>
+  </aside>
+</div>
+
+<h1 class="heading">十三、实施路线图（分期交付）</h1>
+<div class="doc-section">
+  <ol class="timeline">
+    <li><strong>V0.5 云端基础设施（新增）</strong><p>阿里云轻量服务器购买与初始化、域名与 HTTPS、Docker 部署框架、数据库与每日备份任务、家长/孩子双账号体系、安全配置——先把地基打好，约需一周。</p></li>
+    <li><strong>V1.0 核心闭环（先跑起来）</strong><p>孩子端 + 家长端双界面（含家长远程访问）；三学科任务（英语听写 / 语文朗读问答 / 数学口算+应用题）；DeepSeek 任务生成与批改；云语音识别接入；判定引擎后台可切换；宠物领养（四品质）、蛋孵化、喂食、升级、多宠物管理、领养上限；金币/经验/食物三货币；防沉迷四层 + iPad 引导式访问部署指引。</p></li>
+    <li><strong>V1.5 游戏化增强</strong><p>八条进化链完整动画；六神兽与领取条件；答题回合制战斗 + 技能；学科周 BOSS；商城与皮肤；连续打卡火焰与补签卡。</p></li>
+    <li><strong>V2.0 内容与洞察</strong><p>科学题库模块；语文短文库扩充（分主题分级）；学情周报可视化（各科正确率趋势、薄弱点提示）；现实奖励兑换流程。</p></li>
+    <li><strong>V3.0 扩展（按需）</strong><p>多孩档案；安卓平板适配优化；寒暑假任务模式；服务器迁移工具（换厂商一键搬家）。</p></li>
+  </ol>
+  <aside class="callout">
+    <p><strong>为什么这样分期：</strong>V0.5+V1.0 覆盖「云地基 + 学习→奖励→喂宠」最短完整闭环，装到 iPad 上就能开始用；游戏化元素虽然好玩，但核心价值在学习闭环，先验证孩子是否买账，再投入做战斗系统。</p>
+  </aside>
+</div>
+
+<h1 class="heading">十四、决策点确认记录与新增待确认项</h1>
+<div class="doc-section">
+  <h3 class="heading">已确认的 8 项（2026-09-28）</h3>
+  <div class="table-wrap">
+    <div class="table-caption">原 8 个决策点 · 你的答复与方案落实</div>
+    <table class="table" data-caption="原 8 个决策点答复记录">
+      <colgroup><col style="width:26%"><col style="width:30%"><col style="width:44%"></colgroup>
+      <thead><tr><th>决策点</th><th>你的答复</th><th>方案落实</th></tr></thead>
+      <tbody>
+        <tr><td>1. 领养上限口径</td><td class="ok">按孩子账号等级</td><td>每 5 级 +3，已写入 7.1</td></tr>
+        <tr><td>2. 宠物生病机制</td><td class="ok">接受长期不喂会生病</td><td>温和版生病机制保留</td></tr>
+        <tr><td>3. 英语教材版本</td><td class="ok">人教版四年级上学期</td><td>预置人教 PEP 四上词库</td></tr>
+        <tr><td>4. 语文阅读材料</td><td class="ok">家长定期上传课外书</td><td>上传通道为主，内置短文库为辅</td></tr>
+        <tr><td>5. 体育任务</td><td class="ok">先按跳绳处理</td><td>预置跳绳 200 个/天模板</td></tr>
+        <tr><td>6. 华为手机家长端</td><td class="ok">需要</td><td>云端版天然支持，外网可用</td></tr>
+        <tr><td>7. 娱乐解锁门槛 80%</td><td class="ok">可以接受</td><td>保留 80%，后台可调</td></tr>
+        <tr><td>8. 孩子数量</td><td class="ok">目前 1 个，未来可能增加</td><td>按多孩档案架构预置</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <aside class="callout" data-variant="tip">
+    <p><strong>第 7 点通俗解释（你之前不确定的）：</strong>「娱乐解锁门槛 80%」意思是——每天的任务列表里，全部完成算 100%。比如今天有 10 项任务，孩子做完 8 项（80%），战斗、商城、装扮这些「玩」的模块才会解锁；只做了一半就只能继续做任务。这是防止孩子打开应用就直奔游戏环节不学习的核心闸门。<strong>举例：听写、阅读、口算、应用题、科学、跳绳共 10 项，做完 8 项就能「玩」，只做 3 项则战斗商城全是锁。</strong>比例你可以在后台随时调（比如改成 100% 就是「全部做完才能玩」）。</p>
+  </aside>
+  <h3 class="heading">新增待确认项（V1.1 提出）</h3>
+  <ol class="list">
+    <li><strong>六神兽名单与条件</strong>：见 7.3 建议稿（青龙/白虎/朱雀/玄武/麒麟/貔貅 + 各自条件）——名单要换吗？数值要调吗？</li>
+    <li><strong>珍贵品质解锁</strong>：目前默认 10 级，是否改为特定成就（如英语错词清零/连续四周全勤）？</li>
+    <li><strong>服务器采购时机</strong>：V0.5 阶段才需要，现在不用买；到时我推荐具体配置（预计 2核2G 轻量服务器，新用户首购约 30~50 元/月）</li>
+    <li><strong>域名</strong>：需要一个你喜欢的域名（如 xxx.com），注册实名需你的信息；也可以先用服务器 IP 访问（HTTPS 略麻烦），建议还是买个域名</li>
+    <li><strong>云语音识别选型</strong>：阿里云语音识别（与服务器同厂商，管理方便）或科大讯飞（识别效果好）——默认建议阿里云，你有偏好吗？</li>
+  </ol>
+</div>
+
+<aside class="callout" data-variant="quote">
+  <p><strong>方案小结（V1.1）：</strong>阿里云服务器统一存储与调度 + 任意浏览器访问（iPad 锁定做孩子端、华为手机做家长端、未来换平板零迁移、出差可远程管理）+ 判定引擎后台可切换（默认智能混合，程序与 AI 各司其职）+ 四品质八进化链六神兽的宠物体系。学习闭环（任务→批改→奖励）是主干，宠物养成是动力引擎，四层防沉迷保障「游戏为学习服务」而非相反。已确认 8 项决策，待确认 5 项新增项，确认后即可开始 V0.5 云端基建 + V1.0 核心开发。</p>
+</aside>
+
+<section class="title end_page">
+  <h1>方案 V1.1 修订完毕</h1>
+  <p>确认第十四章的 5 个新增待确认项后，就可以开始 V0.5 云端基建与 V1.0 核心版本的开发</p>
+  <p style="margin-top:8px;font-size:13px;">「宠伴学园」家庭宠物养成学习系统 · 方案 V1.1 · 2026 年 9 月</p>
+</section>
+
+</body>
+</html>
