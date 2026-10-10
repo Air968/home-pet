@@ -1,5 +1,18 @@
-﻿D:\TeleAgent\TeleAgent的工作空间\repos\home-pet/
+# 本地测试数据（开发环境产生，不提交）
+.appdata/
+__pycache__/
+*.pyc
+
+# 日志与临时文件
 *.log
 *.tmp
+
+# 系统文件
 .DS_Store
 Thumbs.db
+
+# 编辑器
+.vscode/
+.idea/
+*.swp
+*.swo

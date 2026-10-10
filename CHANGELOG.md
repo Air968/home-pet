@@ -4,6 +4,41 @@
 
 ---
 
+## V20 · 2026-10-10 · 代码优化与 UI 全面升级
+
+### 后端（upload_server.py V3）
+
+1. **原子写入**：`save_user`/`save_global` 改用 `tempfile` + `os.replace` + `fsync`，避免崩溃导致数据损坏
+2. **速率限制**：登录/注册接口增加 IP 级限流（10 次/分钟），防暴力破解
+3. **安全响应头**：所有响应添加 `X-Content-Type-Options`/`X-Frame-Options`/`Referrer-Policy`/`Cache-Control`
+4. **存档大小限制**：`/api/data/save` 增加 2MB 上限校验，防恶意写入超大数据
+5. **错误信息脱敏**：500 错误不再泄露内部异常详情，统一返回 `internal_error`
+6. **代码质量**：函数加 docstring、代码结构更清晰
+
+### 前端 CSS 设计系统
+
+1. **Design Tokens 扩展**：新增间距 scale（--sp-1~10）、字号 scale（--fs-xs~2xl）、圆角 scale（--r-sm~2xl）、过渡预设（--t-fast/norm/slow + --ease）、阴影体系（--shadow-sm/lg/blue/gold）
+2. **可访问性**：添加 `:focus-visible` 全局聚焦态 + `@media (prefers-reduced-motion: reduce)` 尊重用户动画偏好
+3. **自定义滚动条**：WebKit 滚动条美化
+4. **登录页升级**：动画渐变背景（浮动光球）+ 卡片渐入动画 + 毛玻璃效果 + 输入框聚焦光晕
+5. **按钮增强**：`:active` 缩放反馈 + 更强 hover 阴影 + danger 按钮样式
+6. **Hero 卡片**：shimmer 光泽扫过动画 + hover 上浮
+7. **任务卡片**：左侧色条指示（蓝=待办/绿=完成）+ 图标 hover 放大
+8. **空状态**：动画图标 + hover 变色
+9. **弹窗/Toast**：fadeIn 动画 + 增强阴影 + 字重优化
+10. **底部导航**：hover 背景渐显 + 红点 pulse 动画
+11. **家长端**：侧边栏 sticky 定位 + 导航 hover 平移 + 面板 hover 阴影
+
+### 前端 JavaScript
+
+1. **移除死代码**：V19 已下架的装扮系统 `COSTUMES` 对象 + `costumeOverlay` 函数 + 对应 CSS 全部清除
+2. **网络错误处理**：`apiPost`/`apiGet` 添加 try-catch，网络失败返回 `{error:'network_error'}`
+3. **ESC 关闭弹窗**：按 Escape 键关闭模态框
+4. **防抖工具**：新增 `debounce()` 函数用于高频事件
+5. **Toast 增强**：支持自定义显示时长参数
+
+---
+
 ## V19 · 2026-10-09 · 六项体验改进
 
 1. **下架装扮系统**：商城移除全部装扮商品（礼帽/蝴蝶结/皇冠/围巾/披风/光环），宠物详情页装扮穿戴区、仓库装扮栏同步取消；商城只保留食物 + 现实奖励

@@ -1,23 +1,50 @@
 #!/usr/bin/env python3
-# 宠伴学园 · 应用服务（账号/云端数据/全局素材/图片上传）纯标准库实现
-# V2：新增管理员白名单（全局素材/图片仅管理员可改）+ 账号改密接口
-import os, uuid, time, json, hashlib, secrets, threading
+# 宠伴学园 · 应用服务（账号/云端数据/全局素材/图片上传 + 静态文件）纯标准库实现
+# V3.1：原子写入 + 速率限制 + 安全头 + 健壮错误处理 + 输入验证 + 本地静态服务
+import os, uuid, time, json, hashlib, secrets, threading, tempfile, mimetypes
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import unquote
+from collections import defaultdict
 
-BASE = '/var/www/petapp'
-UPLOAD_DIR = BASE + '/uploads'
-DATA_DIR = BASE + '/data'
+# 路径配置：生产用默认值，本地通过环境变量覆盖
+BASE = os.environ.get('PETAPP_BASE', '/var/www/petapp')
+UPLOAD_DIR = os.environ.get('PETAPP_UPLOAD', BASE + '/uploads')
+DATA_DIR = os.environ.get('PETAPP_DATA', BASE + '/data')
 GLOBAL_FILE = BASE + '/global.json'
+# 静态文件目录（前端 index.html 所在目录），生产由 nginx 提供时此项无效
+STATIC_DIR = os.environ.get('PETAPP_STATIC', os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 TOKEN = 'cbxy-upload-8c1f'
 MAX_UPLOAD = 10 * 1024 * 1024   # 单图 10MB
 MAX_BODY = 4 * 1024 * 1024      # JSON 请求体 4MB
+MAX_DATA_SIZE = 2 * 1024 * 1024 # 单用户存档上限 2MB
 ALLOWED_EXT = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
 DEFAULT_ADMINS = ['admin']     # 管理员白名单（存于 global.json，客户端不可改）
 LOCK = threading.Lock()
 
+# 速率限制：每 IP 每分钟最多 RATE_LIMIT 次认证请求
+RATE_LIMIT = 10
+RATE_WINDOW = 60
+_rate_buckets = defaultdict(list)
+_rate_lock = threading.Lock()
+
+
+def _rate_check(ip):
+    """检查 IP 是否超过认证请求速率限制，返回 True 表示允许"""
+    now = time.time()
+    with _rate_lock:
+        bucket = _rate_buckets[ip]
+        # 清理过期记录
+        cutoff = now - RATE_WINDOW
+        while bucket and bucket[0] < cutoff:
+            bucket.pop(0)
+        if len(bucket) >= RATE_LIMIT:
+            return False
+        bucket.append(now)
+        return True
+
 
 def ukey(u):
+    """用户名 → SHA256 文件名（防止用户名含特殊字符导致路径问题）"""
     return hashlib.sha256(u.encode('utf-8')).hexdigest()
 
 
@@ -26,7 +53,28 @@ def upath(u):
 
 
 def valid_user(u):
-    return 2 <= len(u) <= 20 and all(c.isalnum() or c == '_' or '\u4e00' <= c <= '\u9fa5' for c in u)
+    """用户名校验：2-20 字符，允许字母数字下划线和中文"""
+    return 2 <= len(u) <= 20 and all(
+        c.isalnum() or c == '_' or '\u4e00' <= c <= '\u9fa5' for c in u
+    )
+
+
+def _atomic_write(path, data, mode='w', encoding='utf-8'):
+    """原子写入：先写临时文件再 rename，避免崩溃导致数据损坏"""
+    d = os.path.dirname(path)
+    fd, tmp = tempfile.mkstemp(dir=d, suffix='.tmp')
+    try:
+        with os.fdopen(fd, mode, encoding=encoding if 'b' not in mode else None) as f:
+            f.write(data)
+            f.flush()
+            os.fsync(f.fileno())
+        os.replace(tmp, path)
+    except Exception:
+        try:
+            os.unlink(tmp)
+        except OSError:
+            pass
+        raise
 
 
 def load_user(u):
@@ -38,8 +86,9 @@ def load_user(u):
 
 
 def save_user(u, obj):
-    with open(upath(u), 'w', encoding='utf-8') as f:
-        json.dump(obj, f, ensure_ascii=False)
+    """原子写入用户数据"""
+    data = json.dumps(obj, ensure_ascii=False)
+    _atomic_write(upath(u), data)
 
 
 def load_global():
@@ -59,8 +108,9 @@ def load_global():
 
 
 def save_global(g):
-    with open(GLOBAL_FILE, 'w', encoding='utf-8') as f:
-        json.dump(g, f, ensure_ascii=False)
+    """原子写入全局配置"""
+    data = json.dumps(g, ensure_ascii=False)
+    _atomic_write(GLOBAL_FILE, data)
 
 
 def hash_pwd(salt, pwd):
@@ -71,21 +121,36 @@ def ensure_admin():
     """确保管理员账号存在（用户名 admin / 默认密码 admin，登录后请尽快修改）"""
     if not load_user('admin'):
         salt = secrets.token_hex(8)
-        save_user('admin', {'user': 'admin', 'salt': salt, 'hash': hash_pwd(salt, 'admin'), 'token': '', 'data': None})
+        save_user('admin', {
+            'user': 'admin',
+            'salt': salt,
+            'hash': hash_pwd(salt, 'admin'),
+            'token': '',
+            'data': None
+        })
         print('admin account created (username: admin, default password: admin)')
 
 
 class Handler(BaseHTTPRequestHandler):
     timeout = 60
     protocol_version = 'HTTP/1.1'
+    server_version = 'PetApp/3.0'
 
     def _json(self, code, obj):
-        body = json.dumps(obj).encode('utf-8')
+        body = json.dumps(obj, ensure_ascii=False).encode('utf-8')
         self.send_response(code)
         self.send_header('Content-Type', 'application/json; charset=utf-8')
         self.send_header('Content-Length', str(len(body)))
+        self._security_headers()
         self.end_headers()
         self.wfile.write(body)
+
+    def _security_headers(self):
+        """安全响应头"""
+        self.send_header('X-Content-Type-Options', 'nosniff')
+        self.send_header('X-Frame-Options', 'DENY')
+        self.send_header('Referrer-Policy', 'no-referrer')
+        self.send_header('Cache-Control', 'no-store')
 
     def _check_token(self):
         if self.headers.get('X-Upload-Token') != TOKEN:
@@ -94,6 +159,7 @@ class Handler(BaseHTTPRequestHandler):
         return True
 
     def _body(self):
+        """读取并解析 JSON 请求体，超限返回 None"""
         try:
             n = int(self.headers.get('Content-Length') or 0)
             if n <= 0 or n > MAX_BODY:
@@ -103,6 +169,7 @@ class Handler(BaseHTTPRequestHandler):
             return None
 
     def _query(self, key):
+        """取查询参数（转小写，用于扩展名等）"""
         if '?' not in self.path:
             return ''
         for kv in self.path.split('?', 1)[1].split('&'):
@@ -111,13 +178,20 @@ class Handler(BaseHTTPRequestHandler):
         return ''
 
     def _query_raw(self, key):
-        """不转小写、带 URL 解码的取参（用于用户名/令牌）"""
+        """取查询参数（原始大小写 + URL 解码，用于用户名/令牌）"""
         if '?' not in self.path:
             return ''
         for kv in self.path.split('?', 1)[1].split('&'):
             if kv.startswith(key + '='):
                 return unquote(kv[len(key) + 1:])
         return ''
+
+    def _client_ip(self):
+        """获取客户端 IP（考虑反代）"""
+        fwd = self.headers.get('X-Forwarded-For', '')
+        if fwd:
+            return fwd.split(',')[0].strip()
+        return self.client_address[0] if self.client_address else 'unknown'
 
     def _is_admin(self, b=None):
         """校验请求携带的账号凭据（body 或 query 中的 u+token）是否为管理员"""
@@ -153,12 +227,40 @@ class Handler(BaseHTTPRequestHandler):
                 if not self._check_token():
                     return
                 return self._json(200, load_global())
+            # 非接口请求 → 提供静态文件 / 上传的图片
+            return self._serve_static()
+        except Exception:
+            self._json(500, {'error': 'internal_error'})
+
+    def _serve_static(self):
+        """提供静态文件（index.html 等）和 /uploads/ 图片，方便本地开发单端口运行"""
+        path = self.path.split('?', 1)[0]
+        if path == '/':
+            path = '/index.html'
+        # /uploads/* 从上传目录提供
+        if path.startswith('/uploads/'):
+            rel = path[len('/uploads/'):]
+            fpath = os.path.normpath(os.path.join(UPLOAD_DIR, rel))
+            base = os.path.normpath(UPLOAD_DIR)
+        else:
+            rel = path.lstrip('/')
+            fpath = os.path.normpath(os.path.join(STATIC_DIR, rel))
+            base = os.path.normpath(STATIC_DIR)
+        # 防目录穿越
+        if not fpath.startswith(base) or '..' in rel or not os.path.isfile(fpath):
             return self._json(404, {'error': 'not found'})
-        except Exception as e:
-            try:
-                self._json(500, {'error': str(e)})
-            except Exception:
-                pass
+        ctype = mimetypes.guess_type(fpath)[0] or 'application/octet-stream'
+        try:
+            with open(fpath, 'rb') as f:
+                data = f.read()
+            self.send_response(200)
+            self.send_header('Content-Type', ctype)
+            self.send_header('Content-Length', str(len(data)))
+            self.send_header('Cache-Control', 'no-cache')
+            self.end_headers()
+            self.wfile.write(data)
+        except OSError:
+            self._json(404, {'error': 'not found'})
 
     # ---------- POST ----------
     def do_POST(self):
@@ -176,15 +278,14 @@ class Handler(BaseHTTPRequestHandler):
             if self.path.startswith('/api/global/save'):
                 return self._global_save()
             return self._json(404, {'error': 'not found'})
-        except Exception as e:
-            try:
-                self._json(500, {'error': str(e)})
-            except Exception:
-                pass
+        except Exception:
+            self._json(500, {'error': 'internal_error'})
 
     def _register(self):
         if not self._check_token():
             return
+        if not _rate_check(self._client_ip()):
+            return self._json(429, {'error': 'rate_limit'})
         b = self._body() or {}
         u, p = str(b.get('u') or ''), str(b.get('p') or '')
         if not valid_user(u) or len(p) < 4:
@@ -200,6 +301,8 @@ class Handler(BaseHTTPRequestHandler):
     def _login(self):
         if not self._check_token():
             return
+        if not _rate_check(self._client_ip()):
+            return self._json(429, {'error': 'rate_limit'})
         b = self._body() or {}
         u, p = str(b.get('u') or ''), str(b.get('p') or '')
         with LOCK:
@@ -248,6 +351,10 @@ class Handler(BaseHTTPRequestHandler):
                 d = b.get('data')
                 if not isinstance(d, dict):
                     return self._json(400, {'error': 'bad data'})
+                # 限制存档大小，防止恶意写入超大数据
+                data_str = json.dumps(d, ensure_ascii=False)
+                if len(data_str.encode('utf-8')) > MAX_DATA_SIZE:
+                    return self._json(413, {'error': 'data_too_large'})
                 rec['data'] = d
                 save_user(u, rec)
                 return self._json(200, {'ok': True})
@@ -322,11 +429,8 @@ class Handler(BaseHTTPRequestHandler):
                 os.remove(path)
                 return self._json(200, {'ok': True})
             return self._json(404, {'error': 'not found'})
-        except Exception as e:
-            try:
-                self._json(500, {'error': str(e)})
-            except Exception:
-                pass
+        except Exception:
+            self._json(500, {'error': 'internal_error'})
 
     def log_message(self, fmt, *args):
         pass
@@ -336,5 +440,7 @@ if __name__ == '__main__':
     os.makedirs(UPLOAD_DIR, exist_ok=True)
     os.makedirs(DATA_DIR, exist_ok=True)
     ensure_admin()
-    print('app server listening on 127.0.0.1:9001')
-    ThreadingHTTPServer(('127.0.0.1', 9001), Handler).serve_forever()
+    HOST = os.environ.get('PETAPP_HOST', '0.0.0.0')
+    PORT = int(os.environ.get('PETAPP_PORT', '9001'))
+    print('app server listening on %s:%d (static: %s)' % (HOST, PORT, STATIC_DIR))
+    ThreadingHTTPServer((HOST, PORT), Handler).serve_forever()
